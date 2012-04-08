@@ -1,6 +1,8 @@
 # Inspired by Mark Embling
 # http://www.markembling.info/view/my-ideal-powershell-prompt-with-git-integration
 
+Add-Type -Path .\libgit2sharp\LibGit2Sharp.dll
+
 function Get-GitDirectory {
     if ($Env:GIT_DIR) {
         $Env:GIT_DIR
@@ -118,9 +120,16 @@ function Get-GitStatus($gitDir = (Get-GitDirectory)) {
 
         if($settings.EnableFileStatus -and !$(InDisabledRepository)) {
             dbg 'Getting status' $sw
-            $status = git -c color.status=false status --short --branch 2>$null
-        } else {
-            $status = @()
+            $Global:GitRepo = $repo = New-Object LibGit2Sharp.Repository $gitDir
+            $status = $repo.Index.RetrieveStatus()
+            $filesAdded = $status.Untracked
+            $filesModified = $status.Modified
+            $filesDeleted = $status.Missing
+            $indexAdded = $status.Added
+            $indexModified = $status.Staged
+            $indexDeleted = $status.Removed
+            $aheadBy = $repo.Head.AheadBy
+            $behindBy = $repo.Head.BehindBy
         }
 
         dbg 'Parsing status' $sw
@@ -160,6 +169,7 @@ function Get-GitStatus($gitDir = (Get-GitDirectory)) {
             }
         }
 
+        dbg 'Get-GitBranch' $sw
         if(!$branch) { $branch = Get-GitBranch $gitDir $sw }
         dbg 'Building status object' $sw
         $indexPaths = $indexAdded + $indexModified + $indexDeleted + $indexUnmerged
