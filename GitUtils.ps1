@@ -1,7 +1,7 @@
 # Inspired by Mark Embling
 # http://www.markembling.info/view/my-ideal-powershell-prompt-with-git-integration
 
-Add-Type -Path .\libgit2sharp\LibGit2Sharp.dll
+Add-Type -Path .\LibGit2Sharp.0.17.0.0\lib\net35\LibGit2Sharp.dll
 
 function Get-GitDirectory {
     if ($Env:GIT_DIR) {
